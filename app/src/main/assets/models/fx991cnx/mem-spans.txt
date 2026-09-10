@@ -1,0 +1,26 @@
+# Format:
+# - 0x<start-hex>,<length>,<color-hex>[,<description>]
+# - 0x<start-hex>,0x<end-hex>,<color-hex>[,<description>]
+
+0xd180,200,ff8500,输入区
+0xd248,200,ff0000,回放区
+0xd318,2,ffff00,小端计数器
+0xd310,10,ffff00,随机数种子
+
+# 变量存储开始
+# 1M Ans A B C D E F x y PreAns @
+0xD31A,10,00ffcb,M
+0xD324,10,ff00e0,Ans
+0xD32e,10,00ffcb,A
+0xD338,10,ff00e0,B
+0xD342,10,00ffcb,C
+0xD34C,10,ff00e0,D
+0xD356,10,00ffcb,E
+0xD360,10,ff00e0,F
+0xD36A,10,00ffcb,x
+0xD374,10,ff00e0,y
+0xD37E,10,00ffcb,PreAns
+0xD388,10,ff00e0,变量@
+
+# 历史记录开始
+0xD392,1,88ffff00,历史记录开始

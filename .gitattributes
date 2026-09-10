@@ -1,0 +1,20 @@
+* text=auto
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf
+gradlew text eol=lf
+*.java text
+*.cpp text
+*.hpp text
+*.h text
+*.c text
+
+# binary
+*.png binary
+*.jpg binary
+*.otf binary
+*.ttf binary
+*.jar binary
+*.so binary
+*.bin binary
+*.apk binary

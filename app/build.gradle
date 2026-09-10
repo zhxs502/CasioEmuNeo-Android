@@ -1,0 +1,32 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.casioemu.neo"
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.casioemu.neo"
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    // .so 由外部 CMake 预编译，这里只打包
+    sourceSets.main {
+        jniLibs.srcDirs 'libs'
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+}

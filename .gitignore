@@ -1,0 +1,24 @@
+# ========== 构建产物 ==========
+/build/
+/app/build/
+/.gradle/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.log
+
+# native 产物（源码 + NDK r23 可重建）
+/app/libs/**/*.so
+
+# ========== 本机配置（含绝对路径，勿提交） ==========
+local.properties
+
+# ========== 体积大、未参与构建的第三方原始包 ==========
+# app/src/main/cpp/{src,imgui,lua,include} 里已有裁剪后的可构建副本
+/third_party/
+
+# ========== 仅本地：受版权保护的原厂 ROM 与反汇编、备份 ==========
+/_local/
+**/rom.bin
+**/_disas.txt
