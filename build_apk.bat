@@ -3,11 +3,16 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
 rem ==============================================================
-rem  CasioEmuNeo-Android  -  build native libs + debug APK
+rem  CasioEmuNeo-Android  -  build native libs + APK
+rem
+rem  Usage:
+rem    build_apk.bat            -> debug APK
+rem    build_apk.bat release    -> release APK (uses keystore.properties
+rem                                if present, otherwise debug signing)
 rem
 rem  Overridable via environment:
 rem    JAVA_HOME / ANDROID_SDK_ROOT / ANDROID_NDK_HOME
-rem    CMAKE_EXE / NINJA_EXE / GRADLE_EXE
+rem    CMAKE_EXE / NINJA_EXE / GRADLE_EXE / STRIP_EXE
 rem  Requirements: JDK 17, Android SDK (compileSdk 34),
 rem                Android NDK r23 (23.2.8568313), CMake >= 3.13, Ninja
 rem ==============================================================
@@ -16,6 +21,13 @@ set "ABIS=arm64-v8a armeabi-v7a"
 set "PLATFORM=android-19"
 set "STL=c++_static"
 set "BUILDTYPE=Release"
+
+set "GRADLE_TASK=assembleDebug"
+set "APK_HINT=debug"
+if /i "%~1"=="release" (
+  set "GRADLE_TASK=assembleRelease"
+  set "APK_HINT=release"
+)
 
 rem ---------- 1. toolchain discovery ----------
 if not defined JAVA_HOME (
@@ -43,6 +55,11 @@ if not defined NINJA_EXE if defined ANDROID_SDK_ROOT (
     if exist "%%~V\bin\ninja.exe" if not defined NINJA_EXE set "NINJA_EXE=%%~V\bin\ninja.exe"
   )
 )
+if not defined STRIP_EXE (
+  for %%V in ("%ANDROID_NDK_HOME%\toolchains\llvm\prebuilt\windows-x86_64\bin\llvm-strip.exe") do (
+    if exist %%V set "STRIP_EXE=%%~V"
+  )
+)
 
 rem ---------- 2. sanity checks ----------
 if not defined ANDROID_NDK_HOME (
@@ -67,6 +84,8 @@ echo [env] ANDROID_SDK_ROOT  = %ANDROID_SDK_ROOT%
 echo [env] ANDROID_NDK_HOME  = %ANDROID_NDK_HOME%
 echo [env] CMAKE_EXE         = %CMAKE_EXE%
 echo [env] NINJA_EXE         = %NINJA_EXE%
+echo [env] STRIP_EXE         = %STRIP_EXE%
+echo [env] gradle task       = %GRADLE_TASK%
 echo.
 
 rem ---------- 3. local.properties (sdk.dir, machine-local) ----------
@@ -103,22 +122,28 @@ for %%A in (%ABIS%) do (
   )
   if not exist "app\libs\%%A" mkdir "app\libs\%%A"
   copy /y "build\%%A\libmain.so" "app\libs\%%A\libmain.so" >nul
+  rem Strip symbols in the packaged copy (~18MB -> ~5MB). The unstripped
+  rem library stays in build\%%A\ for crash symbolication.
+  if defined STRIP_EXE (
+    "%STRIP_EXE%" --strip-unneeded "app\libs\%%A\libmain.so"
+    if errorlevel 1 echo [WARN] strip failed for %%A, packaging unstripped library
+  )
 )
 
-rem ---------- 5. gradle: assembleDebug ----------
+rem ---------- 5. gradle ----------
 echo.
-echo === [apk] gradle assembleDebug ===
+echo === [apk] gradle %GRADLE_TASK% ===
 if exist gradlew.bat (
-  call gradlew.bat assembleDebug --no-daemon
+  call gradlew.bat %GRADLE_TASK% --no-daemon
 ) else if defined GRADLE_EXE (
-  call "%GRADLE_EXE%" assembleDebug --no-daemon
+  call "%GRADLE_EXE%" %GRADLE_TASK% --no-daemon
 ) else (
   where gradle >nul 2>nul
   if errorlevel 1 (
     echo [ERROR] gradle not found. Add a gradle wrapper or set GRADLE_EXE.
     exit /b 1
   )
-  call gradle assembleDebug --no-daemon
+  call gradle %GRADLE_TASK% --no-daemon
 )
 if errorlevel 1 (
   echo [ERROR] gradle build failed
@@ -126,5 +151,9 @@ if errorlevel 1 (
 )
 
 echo.
-echo [OK] APK: app\build\outputs\apk\debug\app-debug.apk
+if /i "%APK_HINT%"=="release" (
+  echo [OK] APK: app\build\outputs\apk\release\app-release.apk
+) else (
+  echo [OK] APK: app\build\outputs\apk\debug\app-debug.apk
+)
 endlocal

@@ -12,6 +12,12 @@
 
 许可证：**GPL-3.0**（见 [LICENSE](LICENSE)）。上游版权归 qiufuyu123 及各贡献者所有。
 
+### 下载
+
+预编译 APK 见 [Releases](https://github.com/zhxs502/CasioEmuNeo-Android/releases)。
+
+APK **不含 ROM**，首次运行请按下方「不包含 ROM」一节自行准备模型目录，再点应用内右上角「模型」按钮导入。
+
 ### 特性
 
 - **单窗口双模式**：竖屏为计算器界面，横屏（调试模式）为完整 ImGui 调试器，左上角半透明按钮切换
@@ -87,16 +93,31 @@ GRADLE_EXE         gradle 可执行文件（默认 gradlew.bat，再退回 PATH 
 
 `local.properties` 里的 `sdk.dir` 由本机生成，**不要提交**（已在 `.gitignore` 中）。
 
-#### 一键构建
+#### 一键构建（Windows）
 
 ```bat
-build_apk.bat
-:: 产物：app\build\outputs\apk\debug\app-debug.apk
+build_apk.bat            :: debug 包
+build_apk.bat release    :: release 包
 ```
 
-流程：配置并编译 native（arm64-v8a + armeabi-v7a）→ 拷贝 `.so` 到 `app/libs/<ABI>/` → `gradle assembleDebug`。
+产物：`app\build\outputs\apk\debug\app-debug.apk` / `app\build\outputs\apk\release\app-release.apk`。
+
+流程：配置并编译 native（arm64-v8a + armeabi-v7a）→ 拷贝 `.so` 到 `app/libs/<ABI>/` 并用 NDK 自带 `llvm-strip` 剥离符号（18MB → 约 5MB）→ Gradle 打包。未剥离的完整库保留在 `build/<ABI>/libmain.so`，可用于崩溃符号化（`ndk-stack`）。
 
 增量编译时若已配置过，会跳过 `cmake` 配置步骤；改过 `CMakeLists.txt` 或换 SDK 后请删除 `build/` 重新配置。
+
+#### 签名
+
+release 构建读取仓库根目录的 `keystore.properties`（**不进版本库**）：
+
+```properties
+storeFile=_local/keystore/release.jks
+storePassword=xxx
+keyAlias=xxx
+keyPassword=xxx
+```
+
+该文件不存在时自动回退 debug 签名，因此没有密钥的机器也能直接构建。
 
 #### 部署到设备
 
@@ -164,11 +185,18 @@ Model directory (`files/models/<model>/` on device):
 Requirements: JDK 17, Android SDK (compileSdk 34), **NDK r23 (23.2.8568313)**, CMake ≥ 3.13, Ninja.
 
 ```bat
-build_apk.bat    :: -> app\build\outputs\apk\debug\app-debug.apk
-deploy.bat       :: install & launch on a connected device
+build_apk.bat            :: debug APK
+build_apk.bat release    :: release APK
+deploy.bat               :: build + install & launch on a connected device
 ```
 
+Native libraries are stripped with the NDK's `llvm-strip` before packaging (18MB → ~5MB); the unstripped copies stay in `build/<abi>/` for crash symbolication. Release builds read `keystore.properties` when present and fall back to debug signing otherwise.
+
 Override toolchain locations with `ANDROID_SDK_ROOT`, `ANDROID_NDK_HOME`, `JAVA_HOME`, `CMAKE_EXE`, `NINJA_EXE`, `GRADLE_EXE`.
+
+### Download
+
+Prebuilt APKs are on the [Releases](https://github.com/zhxs502/CasioEmuNeo-Android/releases) page. No ROM is bundled — see "No ROM included" above.
 
 ### License
 

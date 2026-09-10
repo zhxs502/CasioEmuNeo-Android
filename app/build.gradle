@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+// 发布签名：根目录存在 keystore.properties 时使用其中的正式密钥（该文件与 .jks 均不进版本库），
+// 否则回退到 debug 签名，保证没有密钥的机器也能构建。
+def keystorePropsFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def hasReleaseKey = keystorePropsFile.exists() && keystoreProps['storeFile'] != null
+
 android {
     namespace "com.casioemu.neo"
     compileSdkVersion 34
@@ -12,9 +21,21 @@ android {
         versionName "0.1.0"
     }
 
+    signingConfigs {
+        release {
+            if (hasReleaseKey) {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig hasReleaseKey ? signingConfigs.release : signingConfigs.debug
         }
     }
 
