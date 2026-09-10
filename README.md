@@ -12,6 +12,10 @@
 
 许可证：**GPL-3.0**（见 [LICENSE](LICENSE)）。上游版权归 qiufuyu123 及各贡献者所有。
 
+### AI警告
+
+主要由接入picoclaw的deepseek-v4-flash开发
+
 ### 下载
 
 预编译 APK 见 [Releases](https://github.com/zhxs502/CasioEmuNeo-Android/releases)。
@@ -165,6 +169,10 @@ GPL-3.0。第三方组件许可见 [THIRD-PARTY.md](THIRD-PARTY.md)。
 The emulator core comes from upstream; this project adds the Android frontend, build system and packaging.
 
 Licensed under **GPL-3.0** (see [LICENSE](LICENSE)). Upstream copyright belongs to qiufuyu123 and contributors.
+
+### AI Warning
+
+Mainly developed by deepseek-v4-flash with picoclaw
 
 ### Features
 
